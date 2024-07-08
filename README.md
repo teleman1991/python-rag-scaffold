@@ -1,4 +1,4 @@
-As I mention in my (Substack article)[https://pashpashpash.substack.com/p/why-does-my-rag-suck-and-how-do-i], the most important aspect of RAG is observability. So you need to capture valuable metrics like cosine similarity and reranker scores for every retrieval. This repo has everything you need to get started with RAG at an enterprise scale. 
+As I mention in my [Substack article](https://pashpashpash.substack.com/p/why-does-my-rag-suck-and-how-do-i), the most important aspect of RAG is observability. So you need to capture valuable metrics like cosine similarity and reranker scores for every retrieval. This repo has everything you need to get started with RAG at an enterprise scale. 
 
 
 # Prerequisites:
