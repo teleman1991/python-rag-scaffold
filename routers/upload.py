@@ -22,14 +22,6 @@ client = OpenAI()
 router = APIRouter()
 nltk.download('punkt')
 tpuf.api_key = os.getenv("TURBOPUFFER_API_KEY")
-
-class OpenAITokenEstimator(TokenEstimator):
-    def __init__(self):
-        self.tiktoken_tokenizer = tiktoken.encoding_for_model("text-embedding-3-small")
-
-    def estimate_tokens(self, text):
-        return len(self.tiktoken_tokenizer.encode(text))
-
 @dataclass
 class Chunk:
     text: str                   # The text of the chunk
@@ -37,12 +29,14 @@ class Chunk:
     vectorID: str               # The unique vectorID of the chunk, to identify it in vectordb
     fileID: str                  # A unique fileID of the chunk, for relational db purposes
 
-def split_by_sentence(text):
-    return sent_tokenize(text)
-
+class OpenAITokenEstimator(TokenEstimator):
+    def __init__(self):
+        self.tiktoken_tokenizer = tiktoken.encoding_for_model("text-embedding-3-small")
+    def estimate_tokens(self, text):
+        return len(self.tiktoken_tokenizer.encode(text))
 
 openai_token_estimator = OpenAITokenEstimator()
-download_np_libraries = TextChunker(512, tokens=True, overlap_percent=10, token_estimator=OpenAITokenEstimator(), split_strategies=[split_by_sentence])
+download_np_libraries = TextChunker(512, tokens=True, overlap_percent=10, token_estimator=OpenAITokenEstimator(), split_strategies=[sent_tokenize])
 
 def extract_text_from_pdf(file: UploadFile) -> str:
     pdf_document = fitz.open(stream=file.file.read(), filetype="pdf")
@@ -73,7 +67,7 @@ def format_time(elapsed_time):
 
 def chunk_text(text: str, max_tokens: int = 512, overlap_percent: float = 10) -> List[str]:
     text_chunker = TextChunker(max_tokens, tokens=True, overlap_percent=overlap_percent, 
-        token_estimator=OpenAITokenEstimator(), split_strategies=[split_by_sentence])
+        token_estimator=OpenAITokenEstimator(), split_strategies=[sent_tokenize])
     chunks = text_chunker.chunk(text)
     for i in range(len(chunks)):
         chunks[i] = clean_up_text(chunks[i])
@@ -152,14 +146,40 @@ async def generate_summary(cluster_summary_chunks: List[Dict]) -> str:
     summary = response.choices[0].message.content.strip()
     return summary
 
-@router.post("/upload")
+
+@router.post(
+    "/upload",
+    summary="Upload a file for processing",
+    description="""
+    Upload a PDF file for text extraction and summarization.
+    The file will be processed to extract text, chunked into smaller parts,
+    and then summarized using OpenAI's GPT-3.5 Turbo model.
+    """,
+    response_description="The summary of the document",
+    responses={
+        200: {
+            "description": "Successful upload and processing",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "summary": "This is a summary of the uploaded document."
+                    }
+                }
+            },
+        },
+        400: {"description": "Bad Request"},
+        500: {"description": "Internal Server Error"},
+    },
+)
 async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
+    s = time.time()
     print(f"[Upload] Received file {file.filename} for processing.")
     # Step 1: Extract all text from file via PyMuPDF (or other library for other file types)
     text = extract_text_from_pdf(file)
     print(f"[Extraction] Extracted text from file {file.filename} with {openai_token_estimator.estimate_tokens(text)} tokens.")
 
     # Step 1.5 (Optional): Generate unique hash for file to use as fileID
+    # You will probably have your own way of managing fileIDs
     file_id = str(hash(text))
     
     # Step 2: Chunk text up to 512 tokens without splitting sentences (naive implemenation for now)
@@ -173,6 +193,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     print(f"[Chunking] Chunking latency: {format_time(time.time() - start_time)}")
     
     # Step 3: Convert each chunk to a vector embedding via OpenAI text-embedding-3-small (no error handling for now)
+    # We use batch processing to significantly reduce the number of API calls and increase speed
     start_time = time.time()
     BATCH_SIZE = 100
     chunk_embeddings: List[Chunk] = []
@@ -186,6 +207,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
 
     
     # Step 4: Upsert vectors + chunks to vectordb namespace w/ unique vectorIDs
+    # I'm using turbopuffer, it's really nice. But you can use any vectorDB. All the concepts are the same.
     start_time = time.time()
     upsert_to_vectordb(chunk_embeddings, namespace)
     print(f"[Upsert] Upserting {len(chunk_embeddings)} embeddings to turbopuffer latency: {format_time(time.time() - start_time)}")
@@ -210,6 +232,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     summary = await generate_summary(cluster_summary_chunks)
     print(f"[Summary] Generated summary:\n{summary}")
     print(f"[Summary] Generating summary latency: {format_time(time.time() - start_time)}")
+    print(f"[Total Latency] Upload handler total latency: {format_time(time.time() - s)}")
     
     # Step 8: Return generated summary
     return {
