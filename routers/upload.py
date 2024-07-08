@@ -42,7 +42,7 @@ def split_by_sentence(text):
 
 
 openai_token_estimator = OpenAITokenEstimator()
-download_np_libraries = TextChunker(750, tokens=True, overlap_percent=10, token_estimator=OpenAITokenEstimator(), split_strategies=[split_by_sentence])
+download_np_libraries = TextChunker(512, tokens=True, overlap_percent=10, token_estimator=OpenAITokenEstimator(), split_strategies=[split_by_sentence])
 
 def extract_text_from_pdf(file: UploadFile) -> str:
     pdf_document = fitz.open(stream=file.file.read(), filetype="pdf")
@@ -71,7 +71,7 @@ def format_time(elapsed_time):
     else:
         return f"{elapsed_time:.2f} seconds"
 
-def chunk_text(text: str, max_tokens: int = 750, overlap_percent: float = 10) -> List[str]:
+def chunk_text(text: str, max_tokens: int = 512, overlap_percent: float = 10) -> List[str]:
     text_chunker = TextChunker(max_tokens, tokens=True, overlap_percent=overlap_percent, 
         token_estimator=OpenAITokenEstimator(), split_strategies=[split_by_sentence])
     chunks = text_chunker.chunk(text)
@@ -162,7 +162,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     # Step 1.5 (Optional): Generate unique hash for file to use as fileID
     file_id = str(hash(text))
     
-    # Step 2: Chunk text up to 750 tokens without splitting sentences (naive implemenation for now)
+    # Step 2: Chunk text up to 512 tokens without splitting sentences (naive implemenation for now)
     # I'm using chunkipy for this demo, which by default uses stanza (semantic models) to split sentences meaninfully. 
     # Because it uses a model to chunk, it takes some time to run. So instead I set a custom split strategy using nltk's sent_tokenize.
     # You can implement your own function without relying on chunkipy in the future.
@@ -191,7 +191,8 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     print(f"[Upsert] Upserting {len(chunk_embeddings)} embeddings to turbopuffer latency: {format_time(time.time() - start_time)}")
     
     # Step 5: Run KMeans clustering on chunks to identify key topics
-    # Considering our maximum chunk size is 750 tokens, we want to use ~18 clusters * 750 = 13500 tokens to fit in 16K token window (with completion)
+    # Considering our maximum chunk size is 512 tokens, 
+    # we want to use ~24 clusters * 512 = 12288 tokens to fit in 16K token window (with 4k left for completion)
     start_time = time.time()
     kmeans = run_kmeans_clustering([chunk.embedding for chunk in chunk_embeddings], n_clusters=18)
     print(f"[Clustering] Running KMeans clustering latency: {format_time(time.time() - start_time)}")
