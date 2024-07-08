@@ -18,7 +18,7 @@ class Retrieval:
     embedding: List[float]       # The embedding of the chunk
     vectorID: str               # The unique vectorID of the chunk, to identify it in vectordb
     fileID: str                  # A unique fileID of the chunk, for relational db purposes
-    distance: float              # Cosine similarity score
+    cosine_similarity_score: float              # Cosine similarity score
     reranker_score: float        # Reranker relevance score
 
 
@@ -60,7 +60,7 @@ async def get_context(queries: List[str] = Form(...), namespace: str = Form(...)
                 embedding=vectors[result.index].vector,
                 vectorID=vectors[result.index].id,
                 fileID=vectors[result.index].attributes['fileID'],
-                distance=vectors[result.index].dist,
+                cosine_similarity_score=vectors[result.index].dist,
                 reranker_score=result.relevance_score
             ))
         
@@ -72,8 +72,10 @@ async def get_context(queries: List[str] = Form(...), namespace: str = Form(...)
             "text": chunk.text,
             "vectorID": chunk.vectorID,
             "fileID": chunk.fileID,
-            "distance": chunk.distance,
+            "cosine_similarity_score": chunk.cosine_similarity_score,
             "reranker_score": chunk.reranker_score
         } for chunk in retrieved_chunks])
+
+        print(f"[Retrieval] {response}")
 
     return response
