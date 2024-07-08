@@ -1,0 +1,64 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+fastapi-env/
+
+# macOS specific files
+.DS_Store
+
+# PyCharm specific files
+.idea/
+
+# VS Code specific files
+.vscode/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Pytest
+.cache
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Environments in case of multiple environments
+fastapi-env/
+
+# Logs
+*.log
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+.coverage.*
+
+# Test results
+coverage.xml
+*.cover
+
+# Other
+*.sublime-workspace
