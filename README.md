@@ -10,6 +10,8 @@ source fastapi-env/bin/activate
 
 pip3 install -r requirements.txt
 
+# Set up secret API keys in `.env` file
+
 # Start server
 uvicorn main:app --reload
 
