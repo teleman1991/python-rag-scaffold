@@ -1,2 +1,13 @@
 fastapi
 uvicorn
+turbopuffer
+openai
+tiktoken
+chunkipy
+PyMuPDF
+scikit-learn
+numpy
+tenacity
+setuptools
+wheel
+nltk
