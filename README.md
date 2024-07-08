@@ -1,20 +1,20 @@
 # Prerequisites:
-python3 --version
+`python3 --version`
 
-brew install python
+`brew install python`
 
-python3 -m venv fastapi-env
+`python3 -m venv fastapi-env`
 
 # Install dependencies
-source fastapi-env/bin/activate
+`source fastapi-env/bin/activate`
 
-pip3 install -r requirements.txt
+`pip3 install -r requirements.txt`
 
 # Set up secret API keys in `.env` file
-cp .env.example .env
+`cp .env.example .env`
 
 # Start server
-uvicorn main:app --reload
+`uvicorn main:app --reload`
 
 # Testing out uploads ([/routers/upload.py](/routers/upload.py))
 
