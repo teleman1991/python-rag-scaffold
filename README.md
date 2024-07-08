@@ -13,6 +13,8 @@
 # Set up secret API keys in `.env` file
 `cp .env.example .env`
 
+`nano .env`
+
 # Start server
 `uvicorn main:app --reload`
 
