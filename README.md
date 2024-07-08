@@ -15,6 +15,8 @@
 
 `nano .env`
 
+You'll need a [turbopuffer api key](https://turbopuffer.com/), an [openai api key](https://platform.openai.com/api-keys), and a [cohere api key](https://dashboard.cohere.com/api-keys).
+
 # Start server
 `uvicorn main:app --reload`
 
