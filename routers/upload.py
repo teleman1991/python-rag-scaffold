@@ -227,7 +227,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     cluster_summary_chunks = get_centermost_chunks(kmeans, chunk_embeddings)
     print(f"[Cluster Summary] Generating cluster summary chunks latency: {format_time(time.time() - start_time)}")
 
-    # Step 7 (Optional): Use gpt-3.5 turbo to generate a summary of the cluster summary chunks
+    # Step 7 (Optional): Use gpt-3.5 turbo to generate a comprehensive summary of the cluster summary chunks
     start_time = time.time()
     summary = await generate_summary(cluster_summary_chunks)
     print(f"[Summary] Generated summary:\n{summary}")
