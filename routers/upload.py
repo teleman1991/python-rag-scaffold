@@ -214,7 +214,7 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     
     # Step 5: Run KMeans clustering on chunks to identify key topics
     # Considering our maximum chunk size is 512 tokens, 
-    # we want to use ~24 clusters * 512 = 12288 tokens to fit in 16K token window (with 4k left for completion)
+    # we want to use ~18 clusters * 512 = 9216 tokens to fit in 16K token window (with ~6.5k left for completion)
     start_time = time.time()
     kmeans = run_kmeans_clustering([chunk.embedding for chunk in chunk_embeddings], n_clusters=18)
     print(f"[Clustering] Running KMeans clustering latency: {format_time(time.time() - start_time)}")
