@@ -20,6 +20,7 @@ import re
 load_dotenv()
 client = OpenAI()
 router = APIRouter()
+nltk.download('punkt')
 tpuf.api_key = os.getenv("TURBOPUFFER_API_KEY")
 @dataclass
 class Chunk:
