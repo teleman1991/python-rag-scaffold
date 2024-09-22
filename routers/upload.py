@@ -216,7 +216,13 @@ async def upload_file(file: UploadFile = File(...), namespace: str = Form(...)):
     # Considering our maximum chunk size is 512 tokens, 
     # we want to use ~18 clusters * 512 = 9216 tokens to fit in 16K token window (with ~6.5k left for completion)
     start_time = time.time()
-    kmeans = run_kmeans_clustering([chunk.embedding for chunk in chunk_embeddings], n_clusters=18)
+    chunk_embeddings_list = [chunk.embedding for chunk in chunk_embeddings]
+    n_clusters = min(18, len(chunk_embeddings_list))  # Ensure n_clusters does not exceed the number of samples
+    if n_clusters > 1:
+        kmeans = run_kmeans_clustering(chunk_embeddings_list, n_clusters=n_clusters)
+    else:
+        # Handle the case where there are not enough samples to form clusters
+        raise ValueError(f"Not enough samples to form clusters. Only {len(chunk_embeddings_list)} samples available.")
     print(f"[Clustering] Running KMeans clustering latency: {format_time(time.time() - start_time)}")
     
     # Step 6: Sample centermost chunk from each cluster (average cluster meaning) to create an array of cluster summary chunks + hold on to their vectorIDs
